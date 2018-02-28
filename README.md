@@ -12,8 +12,12 @@
     </dependency>
 	
 	
-3 - Se crea el jar y se ejecuta con los siguientes argumentos:
+3 - Se crea el jar 
 
-mvn clean install -Dzendesk.ticket="1234" -Dzendesk.token="1234" -Dzendesk.url="http://localhost:8080" -Dzendesk.user="Adrian" -Dtarjetas.getDatos="datos" -Dzendesk.error.mail.funcionalidad="1" -Dzendesk.error.destinatario="dest"
+	mvn clean install
+	
+4 - Ejecutar app
+
+	mvn exec:java -Dzendesk.ticket="1234" -Dzendesk.token="1234" -Dzendesk.url="http://localhost:8080" -Dzendesk.user="Adrian" 		-Dtarjetas.getDatos="datos" -Dzendesk.error.mail.funcionalidad="1" -Dzendesk.error.destinatario="dest"
 
 	*También se podría haber cambiado la forma de coger las properties por fichero de configuración situado en resources y cargado en el applicationContext.

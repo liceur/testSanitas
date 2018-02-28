@@ -1,29 +1,24 @@
 package com.mycorp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mycorp.handlers.BasicAsyncCompletionHandler;
+import com.mycorp.handlers.impl.BasicAsyncCompletionHandlerImpl;
+import com.mycorp.handlers.ZendeskAsyncCompletionHandler;
+import com.mycorp.mappers.MyObjectMapper;
+import com.mycorp.support.Ticket;
+import com.ning.http.client.*;
+import com.ning.http.client.uri.Uri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.mycorp.support.Ticket;
-import com.ning.http.client.AsyncCompletionHandler;
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.ListenableFuture;
-import com.ning.http.client.Realm;
-import com.ning.http.client.Request;
-import com.ning.http.client.RequestBuilder;
-import com.ning.http.client.Response;
-import com.ning.http.client.uri.Uri;
 
 public class Zendesk implements Closeable {
     private static final String JSON = "application/json; charset=UTF-8";
@@ -36,6 +31,8 @@ public class Zendesk implements Closeable {
     private final Logger logger;
     private boolean closed = false;
 
+    @Autowired
+    private BasicAsyncCompletionHandler basicAsyncCompletionHandler;
 
     private Zendesk(AsyncHttpClient client, String url, String username, String password) {
         this.logger = LoggerFactory.getLogger(Zendesk.class);
@@ -56,13 +53,20 @@ public class Zendesk implements Closeable {
             }
             this.realm = null;
         }
-        this.mapper = createMapper();
+        this.mapper = MyObjectMapper.createMapper();
     }
 
     public Ticket createTicket(Ticket ticket) {
-        return complete(submit(req("POST", cnst("/tickets.json"),
-                        JSON, json(Collections.singletonMap("ticket", ticket))),
-                handle(Ticket.class, "ticket")));
+        return complete(
+                submit(
+                        req("POST",
+                            cnst("/tickets.json"),
+                            JSON,
+                            json(Collections.singletonMap("ticket", ticket))
+                        ),
+                        basicAsyncCompletionHandler.handle(Ticket.class, "ticket")
+                )
+        );
     }
 
     private byte[] json(Object object) {
@@ -88,22 +92,13 @@ public class Zendesk implements Closeable {
         return builder.build();
     }
 
-    public static ObjectMapper createMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-        mapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        return mapper;
-    }
+
 
     private Uri cnst(String template) {
         return Uri.create(url + template);
     }
 
-    private boolean isStatus2xx(Response response) {
-        return response.getStatusCode() / 100 == 2;
-    }
+
 
     private <T> ListenableFuture<T> submit(Request request, ZendeskAsyncCompletionHandler<T> handler) {
         if (logger.isDebugEnabled()) {
@@ -118,68 +113,6 @@ public class Zendesk implements Closeable {
         }
         return client.executeRequest(request, handler);
     }
-
-    private void logResponse(Response response) throws IOException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Response HTTP/{} {}\n{}", response.getStatusCode(), response.getStatusText(),
-                    response.getResponseBody());
-        }
-        if (logger.isTraceEnabled()) {
-            logger.trace("Response headers {}", response.getHeaders());
-        }
-    }
-
-    private boolean isRateLimitResponse(Response response) {
-        return response.getStatusCode() == 429;
-    }
-
-    protected <T> ZendeskAsyncCompletionHandler<T> handle(final Class<T> clazz, final String name, final Class... typeParams) {
-        return new BasicAsyncCompletionHandler<T>(clazz, name, typeParams);
-    }
-
-
-    private class BasicAsyncCompletionHandler<T> extends ZendeskAsyncCompletionHandler<T> {
-        private final Class<T> clazz;
-        private final String name;
-        private final Class[] typeParams;
-
-        public BasicAsyncCompletionHandler(Class clazz, String name, Class... typeParams) {
-            this.clazz = clazz;
-            this.name = name;
-            this.typeParams = typeParams;
-        }
-
-        @Override
-        public T onCompleted(Response response) throws Exception {
-            logResponse(response);
-            if (isStatus2xx(response)) {
-                if (typeParams.length > 0) {
-                    JavaType type = mapper.getTypeFactory().constructParametricType(clazz, typeParams);
-                    return mapper.convertValue(mapper.readTree(response.getResponseBodyAsStream()).get(name), type);
-                }
-                return mapper.convertValue(mapper.readTree(response.getResponseBodyAsStream()).get(name), clazz);
-            } else if (isRateLimitResponse(response)) {
-                throw new ZendeskException(response.toString());
-            }
-            if (response.getStatusCode() == 404) {
-                return null;
-            }
-            throw new ZendeskException(response.toString());
-        }
-    }
-
-
-    private static abstract class ZendeskAsyncCompletionHandler<T> extends AsyncCompletionHandler<T> {
-        @Override
-        public void onThrowable(Throwable t) {
-            if (t instanceof IOException) {
-                throw new ZendeskException(t);
-            } else {
-                super.onThrowable(t);
-            }
-        }
-    }
-
 
     //////////////////////////////////////////////////////////////////////
     // Closeable interface methods

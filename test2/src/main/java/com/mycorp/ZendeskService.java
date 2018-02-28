@@ -1,10 +1,9 @@
-package com.mycorp.services;
+package com.mycorp;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 
-import com.mycorp.Zendesk;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,14 +29,14 @@ import portalclientesweb.ejb.interfaces.PortalClientesWebEJBRemote;
 import util.datos.PolizaBasico;
 import util.datos.UsuarioAlta;
 
-@Service
+@Service("zendeskService")
 public class ZendeskService {
 
     /** The Constant LOG. */
     private static final Logger LOG = LoggerFactory.getLogger( ZendeskService.class );
 
-    private static final String ESCAPED_LINE_SEPARATOR = "\\n";
-    private static final String ESCAPE_ER = "\\";
+    private static final String ESCAPED_LINE_SEPARATOR = "\n";
+    private static final String ESCAPE_ER = "/n";
     private static final String HTML_BR = "<br/>";
     @Value("#{systemProperties['zendesk.ticket']}")
     public String PETICION_ZENDESK= "";
@@ -54,10 +53,7 @@ public class ZendeskService {
     @Value("#{systemProperties['tarjetas.getDatos']}")
     public String TARJETAS_GETDATOS = "";
 
-    @Value("#{systemProperties['cliente.getDatos']}")
-    public String CLIENTE_GETDATOS = "";
-
-    @Value("#{systemProperties['zendesk.error.mail.funcionalidad']}")
+   @Value("#{systemProperties['zendesk.error.mail.funcionalidad']}")
     public String ZENDESK_ERROR_MAIL_FUNCIONALIDAD = "";
 
     @Value("#{systemProperties['zendesk.error.destinatario']}")

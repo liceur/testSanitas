@@ -1,5 +1,6 @@
 package com.mycorp;
 
+import com.mycorp.services.impl.ZendeskService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import util.datos.UsuarioAlta;
@@ -22,8 +23,6 @@ public class RunApp {
         usuarioAlta.setEmail("email@gmail.com");
         usuarioAlta.setNumeroTelefono("600123456");
         usuarioAlta.setNumDocAcreditativo("9876");
-
-
 
         String datosUsuario = zendeskService.altaTicketZendesk( usuarioAlta, "agent1");
 

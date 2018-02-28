@@ -1,4 +1,4 @@
-package com.mycorp.services;
+package com.mycorp.services.impl;
 
 import com.mycorp.support.CorreoElectronico;
 import com.mycorp.support.MensajeriaService;

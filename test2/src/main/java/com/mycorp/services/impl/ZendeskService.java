@@ -1,9 +1,11 @@
-package com.mycorp;
+package com.mycorp.services.impl;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 
+import com.mycorp.Zendesk;
+import com.mycorp.services.TicketService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +32,7 @@ import util.datos.PolizaBasico;
 import util.datos.UsuarioAlta;
 
 @Service("zendeskService")
-public class ZendeskService {
+public class ZendeskService implements TicketService {
 
     /** The Constant LOG. */
     private static final Logger LOG = LoggerFactory.getLogger( ZendeskService.class );
@@ -79,6 +81,7 @@ public class ZendeskService {
      * @param usuarioAlta
      * @param userAgent
      */
+    @Override
     public String altaTicketZendesk(UsuarioAlta usuarioAlta, String userAgent){
 
         ObjectMapper mapper = new ObjectMapper();

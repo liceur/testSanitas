@@ -1,4 +1,4 @@
-package com.mycorp.services;
+package com.mycorp.services.impl;
 
 import org.springframework.stereotype.Component;
 import portalclientesweb.ejb.interfaces.PortalClientesWebEJBRemote;

@@ -18,6 +18,6 @@
 	
 4 - Ejecutar app
 
-	mvn exec:java -Dzendesk.ticket="1234" -Dzendesk.token="1234" -Dzendesk.url="http://localhost:8080" -Dzendesk.user="Adrian" 		-Dtarjetas.getDatos="datos" -Dzendesk.error.mail.funcionalidad="1" -Dzendesk.error.destinatario="dest"
-
-	*También se podría haber cambiado la forma de coger las properties por fichero de configuración situado en resources y cargado en el applicationContext.
+	mvn exec:java
+	
+	The properties are in a file application.properties

@@ -40,26 +40,27 @@ public class ZendeskService implements TicketService {
     private static final String ESCAPED_LINE_SEPARATOR = "\n";
     private static final String ESCAPE_ER = "/n";
     private static final String HTML_BR = "<br/>";
-    @Value("#{systemProperties['zendesk.ticket']}")
-    public String PETICION_ZENDESK= "";
 
-    @Value("#{systemProperties['zendesk.token']}")
-    public String TOKEN_ZENDESK= "";
+    @Value("${zendesk.ticket}")
+    private String PETICION_ZENDESK= "";
 
-    @Value("#{systemProperties['zendesk.url']}")
-    public String URL_ZENDESK= "";
+    @Value("${zendesk.token}")
+    private String TOKEN_ZENDESK= "";
 
-    @Value("#{systemProperties['zendesk.user']}")
-    public String ZENDESK_USER= "";
+    @Value("${zendesk.url}")
+    private String URL_ZENDESK= "";
 
-    @Value("#{systemProperties['tarjetas.getDatos']}")
-    public String TARJETAS_GETDATOS = "";
+    @Value("${zendesk.user}")
+    private String ZENDESK_USER= "";
 
-   @Value("#{systemProperties['zendesk.error.mail.funcionalidad']}")
-    public String ZENDESK_ERROR_MAIL_FUNCIONALIDAD = "";
+    @Value("${tarjetas.getDatos}")
+    private String TARJETAS_GETDATOS = "";
 
-    @Value("#{systemProperties['zendesk.error.destinatario']}")
-    public String ZENDESK_ERROR_DESTINATARIO = "";
+   @Value("${zendesk.error.mail.funcionalidad}")
+    private String ZENDESK_ERROR_MAIL_FUNCIONALIDAD = "";
+
+    @Value("${zendesk.error.destinatario}")
+    private String ZENDESK_ERROR_DESTINATARIO = "";
 
     private SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 
@@ -75,6 +76,14 @@ public class ZendeskService implements TicketService {
     @Autowired
     @Qualifier( "emailService" )
     private MensajeriaService emailService;
+
+    public ZendeskService() {
+    }
+
+    public ZendeskService(PortalClientesWebEJBRemote portalclientesWebEJBRemote, MensajeriaService emailService) {
+        this.portalclientesWebEJBRemote = portalclientesWebEJBRemote;
+        this.emailService = emailService;
+    }
 
     /**
      * Crea un ticket en Zendesk. Si se ha informado el nÂº de tarjeta, obtiene los datos asociados a dicha tarjeta de un servicio externo.
